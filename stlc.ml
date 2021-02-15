@@ -50,7 +50,7 @@ let rec showExp : exp -> string = function
   | ELam (x, t, y) -> Printf.sprintf "(λ (%s : %s) %s)" x (showTExp t) (showExp y)
 
 let check name e t : string =
-  Printf.sprintf "(theorem - %s (ø ⊢ %s : %s) %s)"
+  Printf.sprintf "(theorem - %s (· ⊢ %s : %s) %s)"
     name (showExp e) (showTExp t)
     (infer SM.empty 0 e |> String.concat " ")
 
