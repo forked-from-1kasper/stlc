@@ -46,8 +46,8 @@ let rec eval = function
     begin match eval f with
     | ELam (z, _, p)             -> subst z (eval x) (eval p)
     | EApp (EApp (EIte, b), y) ->
-      begin match eval b with
-      | ETrue  -> eval y
+      begin match b with
+      | ETrue  -> y
       | EFalse -> eval x
       | _      -> failwith "“ite” expects a boolean"
       end
