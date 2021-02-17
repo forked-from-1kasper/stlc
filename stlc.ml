@@ -44,14 +44,14 @@ let rec subst x v = function
 let rec eval = function
   | EApp (f, x)    ->
     begin match eval f with
-    | ELam (z, _, p)             -> subst z (eval x) (eval p)
+    | ELam (z, _, p)           -> subst z (eval x) (eval p)
     | EApp (EApp (EIte, b), y) ->
       begin match b with
       | ETrue  -> y
       | EFalse -> eval x
       | _      -> failwith "“ite” expects a boolean"
       end
-    | g                          -> EApp (g, eval x)
+    | g -> EApp (g, eval x)
     end
   | ELam (x, t, p) -> ELam (x, t, eval p)
   | tau            -> tau
