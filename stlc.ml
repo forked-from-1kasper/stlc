@@ -43,10 +43,15 @@ let rec subst x v = function
 
 let rec eval = function
   | EApp (f, x)    ->
-    let y = eval x in
     begin match eval f with
-    | ELam (z, _, p) -> subst z y (eval p)
-    | g              -> EApp (g, y)
+    | ELam (z, _, p)             -> subst z (eval x) (eval p)
+    | EApp (EApp (EIte, b), y) ->
+      begin match eval b with
+      | ETrue  -> eval y
+      | EFalse -> eval x
+      | _      -> failwith "“ite” expects a boolean"
+      end
+    | g                          -> EApp (g, eval x)
     end
   | ELam (x, t, p) -> ELam (x, t, eval p)
   | tau            -> tau
@@ -87,7 +92,7 @@ let check name e t : string =
 
 let term1 = EApp (EApp (EApp (EIte, ETrue), EApp (ESucc, EZero)), EZero)
 let term2 = ELam ("x", TNat, ELam ("y", TNat, EApp (ESucc, EApp (ESucc, EVar "x"))))
-let term3 = EApp (EApp (term2, EZero), EApp (ESucc, EZero))
+let term3 = EApp (EApp (EApp (EIte, EFalse), EApp (ESucc, EZero)), EZero)
 
 let () =
   term3
