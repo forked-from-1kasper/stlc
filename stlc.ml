@@ -4,21 +4,22 @@ type vars = int SM.t
 type name = string
 
 type texp =
-| TArr of texp * texp
-| TNat | TBool
+| TArr   of texp * texp
+| TConst of string
 
 type exp =
-| ELam of name * texp * exp
-| EApp of exp * exp
-| EVar of name
-| EZero | ESucc
-| ETrue | EFalse | EIte
+| ELam   of name * texp * exp
+| EApp   of exp * exp
+| EVar   of name
+| EConst of string
 
 let replicate size value =
   List.init size (fun _ -> value)
 
 let const idx value =
   replicate idx "⊢-rec" @ [value]
+
+let def decl = decl ^ "-def"
 
 let value : int ref = ref 0
 let gensym () =
@@ -45,11 +46,11 @@ let rec eval = function
   | EApp (f, x)    ->
     begin match eval f with
     | ELam (z, _, p)           -> subst z (eval x) (eval p)
-    | EApp (EApp (EIte, b), y) ->
+    | EApp (EApp (EConst "ite", b), y) ->
       begin match b with
-      | ETrue  -> y
-      | EFalse -> eval x
-      | _      -> failwith "“ite” expects a boolean"
+      | EConst "true"  -> y
+      | EConst "false" -> eval x
+      | _              -> failwith "“ite” expects a boolean"
       end
     | g -> EApp (g, eval x)
     end
@@ -57,11 +58,7 @@ let rec eval = function
   | tau            -> tau
 
 let rec infer vars idx = function
-  | EZero          -> const idx "0-def"
-  | ESucc          -> const idx "succ-def"
-  | EFalse         -> const idx "false-def"
-  | ETrue          -> const idx "true-def"
-  | EIte           -> const idx "ite-def"
+  | EConst decl    -> const idx (def decl)
   | EVar x         ->
     begin match SM.find_opt x vars with
     | Some depth -> "ctx-intro" :: replicate (idx - depth) "ctx-rec" @ ["ctx-∈"]
@@ -72,27 +69,40 @@ let rec infer vars idx = function
 
 let rec showTExp : texp -> string = function
   | TArr (dom, cod) -> Printf.sprintf "(%s → %s)" (showTExp dom) (showTExp cod)
-  | TNat            -> "ℕ"
-  | TBool           -> "bool"
+  | TConst value    -> value
 
 let rec showExp : exp -> string = function
-  | EZero          -> "0"
-  | ESucc          -> "succ"
-  | EFalse         -> "false"
-  | ETrue          -> "true"
-  | EIte           -> "ite"
+  | EConst decl    -> decl
   | EVar x         -> x
   | EApp (f, x)    -> Printf.sprintf "(%s %s)" (showExp f) (showExp x)
   | ELam (x, t, y) -> Printf.sprintf "(λ (%s : %s) %s)" x (showTExp t) (showExp y)
 
-let check name e t : string =
-  Printf.sprintf "(theorem - %s (· ⊢ %s : %s) %s)"
+let check name e t =
+  Printf.sprintf "(theorem - %s-check (· ⊢ %s : %s) %s)"
     name (showExp e) (showTExp t)
     (infer SM.empty 0 e |> String.concat " ")
 
-let term1 = EApp (EApp (EApp (EIte, ETrue), EApp (ESucc, EZero)), EZero)
-let term2 = ELam ("x", TNat, ELam ("y", TNat, EApp (ESucc, EApp (ESucc, EVar "x"))))
-let term3 = EApp (EApp (EApp (EIte, EFalse), EApp (ESucc, EZero)), EZero)
+let decl name t =
+  Printf.sprintf "(postulate - %s (· ⊢ %s : %s))"
+    (def name) name (showTExp t)
+
+let emit name e t =
+  check name e t ^ "\n" ^ decl name t
+
+let ite = EConst "ite"
+
+let tt  = EConst "true"
+let ff  = EConst "false"
+
+let zero = EConst "0"
+let succ = EConst "succ"
+
+let boolean = TConst "bool"
+let nat     = TConst "ℕ"
+
+let term1 = EApp (EApp (EApp (ite, tt), EApp (succ, zero)), zero)
+let term2 = ELam ("x", nat, ELam ("y", nat, EApp (succ, EApp (succ, EVar "x"))))
+let term3 = EApp (EApp (EApp (ite, ff), EApp (succ, zero)), zero)
 
 let () =
   term3
@@ -104,8 +114,11 @@ let () =
   |> showExp
   |> Printf.printf "%s\n";
 
-  check "term1" term1 TNat
+  emit "term1" term1 nat
   |> Printf.printf "%s\n";
 
-  check "term2" term2 (TArr (TNat, TArr (TNat, TNat)))
+  emit "term2" term2 (TArr (nat, TArr (nat, nat)))
   |> Printf.printf "%s\n";
+
+  emit "term3" term3 nat
+  |> Printf.printf "%s\n"
