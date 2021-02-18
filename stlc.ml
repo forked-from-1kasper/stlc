@@ -4,14 +4,13 @@ type vars = int SM.t
 type name = string
 
 type texp =
-| TArr   of texp * texp
-| TConst of string
+| TArr of texp * texp
+| TVar of string
 
 type exp =
 | ELam   of name * texp * exp
 | EApp   of exp * exp
 | EVar   of name
-| EConst of string
 
 let replicate size value =
   List.init size (fun _ -> value)
@@ -46,33 +45,25 @@ let rec eval = function
   | EApp (f, x)    ->
     begin match eval f with
     | ELam (z, _, p) -> subst z (eval x) (eval p)
-    | EApp (EApp (EConst "ite", b), y) ->
-      begin match b with
-      | EConst "true"  -> y
-      | EConst "false" -> eval x
-      | _              -> failwith "“ite” expects a boolean"
-      end
     | g -> EApp (g, eval x)
     end
   | ELam (x, t, p) -> ELam (x, t, eval p)
   | tau            -> tau
 
 let rec infer vars idx = function
-  | EConst decl    -> const idx (def decl)
   | EVar x         ->
     begin match SM.find_opt x vars with
     | Some depth -> "ctx-intro" :: replicate (idx - depth) "ctx-rec" @ ["ctx-∈"]
-    | None       -> failwith (Printf.sprintf "unbound variable “%s”" x)
+    | None       -> const idx (def x)
     end
   | EApp (f, x)    -> "λ-elim" :: (infer vars idx f @ infer vars idx x)
   | ELam (x, t, y) -> "λ-intro" :: infer (SM.add x (idx + 1) vars) (idx + 1) y
 
 let rec showTExp : texp -> string = function
   | TArr (dom, cod) -> Printf.sprintf "(%s → %s)" (showTExp dom) (showTExp cod)
-  | TConst value    -> value
+  | TVar value    -> value
 
 let rec showExp : exp -> string = function
-  | EConst decl    -> decl
   | EVar x         -> x
   | EApp (f, x)    -> Printf.sprintf "(%s %s)" (showExp f) (showExp x)
   | ELam (x, t, y) -> Printf.sprintf "(λ (%s : %s) %s)" x (showTExp t) (showExp y)
@@ -89,16 +80,16 @@ let decl name t =
 let emit name e t =
   check name e t ^ "\n" ^ decl name t
 
-let ite = EConst "ite"
+let ite = EVar "ite"
 
-let tt = EConst "true"
-let ff = EConst "false"
+let tt = EVar "true"
+let ff = EVar "false"
 
-let zero = EConst "0"
-let succ = EConst "succ"
+let zero = EVar "0"
+let succ = EVar "succ"
 
-let boolean = TConst "bool"
-let nat     = TConst "ℕ"
+let boolean = TVar "bool"
+let nat     = TVar "ℕ"
 
 let term1 = EApp (EApp (EApp (ite, tt), EApp (succ, zero)), zero)
 let term2 = ELam ("x", nat, ELam ("y", nat, EApp (succ, EApp (succ, EVar "x"))))
