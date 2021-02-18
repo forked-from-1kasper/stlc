@@ -12,6 +12,9 @@ type exp =
 | EApp of exp * exp
 | EVar of name
 
+type command =
+| Decl of name * texp * exp
+
 type env = exp SM.t
 
 let rec showTExp : texp -> string = function

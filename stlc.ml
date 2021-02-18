@@ -1,38 +1,32 @@
 open Prelude
+open Lexing
 open Check
 open Expr
 open Eval
 
-let ite = EVar "ite"
+open Parser
 
-let tt = EVar "true"
-let ff = EVar "false"
+let (>>) f g = fun x -> g (f x)
 
-let zero = EVar "0"
-let succ = EVar "succ"
+exception Parser of int * int * string
 
-let boolean = TVar "bool"
-let nat     = TVar "ℕ"
+let parse filename =
+  let chan = open_in filename in
+  let lexbuf = Lexing.from_channel chan in
+  try Parser.file Lexer.main lexbuf
+  with Parser.Error ->
+    Parser (lexeme_start lexbuf, lexeme_end lexbuf, lexeme lexbuf)
+    |> raise
 
-let term1 = EApp (EApp (EApp (ite, tt), EApp (succ, zero)), zero)
-let term2 = ELam ("x", nat, ELam ("y", nat, EApp (succ, EApp (succ, EVar "x"))))
-let term3 = EApp (EApp (EApp (ite, ff), EApp (succ, zero)), zero)
+let environment : env ref = ref SM.empty
+let cmd : command -> unit = function
+  | Decl (name, texp, exp) -> begin
+    Printf.printf "%s\n" (emit name exp texp);
+    environment := SM.add name exp !environment
+  end
+
+let file = List.iter cmd
 
 let () =
-  term3
-  |> showExp
-  |> Printf.printf "%s\n";
-
-  conv term3
-  |> eval SM.empty
-  |> showExp
-  |> Printf.printf "%s\n";
-
-  emit "term1" term1 nat
-  |> Printf.printf "%s\n";
-
-  emit "term2" term2 (TArr (nat, TArr (nat, nat)))
-  |> Printf.printf "%s\n";
-
-  emit "term3" term3 nat
-  |> Printf.printf "%s\n"
+  Array.to_list Sys.argv
+  |> List.tl |> List.iter (parse >> file)
