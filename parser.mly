@@ -17,10 +17,17 @@ texp:
   | texp ARROW texp      { TArr ($1, $3) }
   | LPARENS texp RPARENS { $2 }
 
+tele:
+  | LPARENS IDENT COLON texp RPARENS { ($2, $4) }
+
+cotele:
+  | tele cotele { $1 :: $2 }
+  | tele        { [$1]     }
+
 exp1:
-  | IDENT { EVar $1 }
-  | exp2 exp2 { EApp ($1, $2) }
-  | LAM LPARENS IDENT COLON texp RPARENS COMMA exp1 { ELam ($3, $5, $8) }
+  | IDENT                 { EVar $1       }
+  | exp2 exp2             { EApp ($1, $2) }
+  | LAM cotele COMMA exp1 { lam $2 $4     }
 
 exp2:
   | IDENT                { EVar $1 }

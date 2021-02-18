@@ -1,2 +1,3 @@
 def test : ℕ := 0
-def true : σ → σ → σ := λ (x : σ), λ (y : σ), x
+def true : σ → σ → σ :=
+λ (x : σ) (y : σ), x

@@ -25,3 +25,8 @@ let rec showExp : exp -> string = function
   | EVar x         -> x
   | EApp (f, x)    -> Printf.sprintf "(%s %s)" (showExp f) (showExp x)
   | ELam (x, t, y) -> Printf.sprintf "(λ (%s : %s) %s)" x (showTExp t) (showExp y)
+
+let rec lam cotele exp =
+  match cotele with
+  | []           -> exp
+  | (x, t) :: xs -> ELam (x, t, lam xs exp)
