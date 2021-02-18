@@ -22,7 +22,7 @@ let rec eval env = function
     let y = eval env x in
     begin match eval env f with
     | ELam (z, _, p) -> subst z y (eval env p)
-    | g -> EApp (g, y)
+    | g              -> EApp (g, y)
     end
   | ELam (x, t, p) -> ELam (x, t, eval env p)
   | EVar x         -> Option.value (SM.find_opt x env) ~default:(EVar x)
