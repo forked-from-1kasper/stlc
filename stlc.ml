@@ -8,9 +8,11 @@ type texp =
 | TVar of string
 
 type exp =
-| ELam   of name * texp * exp
-| EApp   of exp * exp
-| EVar   of name
+| ELam of name * texp * exp
+| EApp of exp * exp
+| EVar of name
+
+type env = exp SM.t
 
 let replicate size value =
   List.init size (fun _ -> value)
@@ -41,14 +43,15 @@ let rec subst x v = function
   | ELam (y, t, u)    -> ELam (y, t, subst x v u)
   | tau               -> tau
 
-let rec eval = function
+let rec eval env = function
   | EApp (f, x)    ->
-    begin match eval f with
-    | ELam (z, _, p) -> subst z (eval x) (eval p)
-    | g -> EApp (g, eval x)
+    let y = eval env x in
+    begin match eval env f with
+    | ELam (z, _, p) -> subst z y (eval env p)
+    | g -> EApp (g, y)
     end
-  | ELam (x, t, p) -> ELam (x, t, eval p)
-  | tau            -> tau
+  | ELam (x, t, p) -> ELam (x, t, eval env p)
+  | EVar x        -> Option.value (SM.find_opt x env) ~default:(EVar x)
 
 let rec infer vars idx = function
   | EVar x         ->
@@ -101,7 +104,7 @@ let () =
   |> Printf.printf "%s\n";
 
   conv term3
-  |> eval
+  |> eval SM.empty
   |> showExp
   |> Printf.printf "%s\n";
 
