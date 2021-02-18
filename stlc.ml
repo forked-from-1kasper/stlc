@@ -45,7 +45,7 @@ let rec subst x v = function
 let rec eval = function
   | EApp (f, x)    ->
     begin match eval f with
-    | ELam (z, _, p)           -> subst z (eval x) (eval p)
+    | ELam (z, _, p) -> subst z (eval x) (eval p)
     | EApp (EApp (EConst "ite", b), y) ->
       begin match b with
       | EConst "true"  -> y
@@ -91,8 +91,8 @@ let emit name e t =
 
 let ite = EConst "ite"
 
-let tt  = EConst "true"
-let ff  = EConst "false"
+let tt = EConst "true"
+let ff = EConst "false"
 
 let zero = EConst "0"
 let succ = EConst "succ"
