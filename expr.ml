@@ -1,7 +1,9 @@
 module SM = Map.Make (String)
 type vars = int SM.t
 
-type name = string
+type name =
+| Ident of string
+| Index of int
 
 type texp =
 | TArr of texp * texp
@@ -13,8 +15,8 @@ type exp =
 | EVar of name
 
 type command =
-| Abbrev of name * texp
-| Decl   of name * texp * exp
+| Abbrev of string * texp
+| Decl   of string * texp * exp
 
 type env = exp SM.t
 
@@ -22,10 +24,14 @@ let rec showTExp : texp -> string = function
   | TArr (dom, cod) -> Printf.sprintf "(%s → %s)" (showTExp dom) (showTExp cod)
   | TVar value    -> value
 
+let showName : name -> string = function
+  | Ident x -> x
+  | Index x -> Printf.sprintf "?%d" x
+
 let rec showExp : exp -> string = function
-  | EVar x         -> x
+  | ELam (x, t, y) -> Printf.sprintf "(λ (%s : %s) %s)" (showName x) (showTExp t) (showExp y)
   | EApp (f, x)    -> Printf.sprintf "(%s %s)" (showExp f) (showExp x)
-  | ELam (x, t, y) -> Printf.sprintf "(λ (%s : %s) %s)" x (showTExp t) (showExp y)
+  | EVar x         -> showName x
 
 let rec lam cotele exp =
   match cotele with

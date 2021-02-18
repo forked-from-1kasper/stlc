@@ -9,4 +9,4 @@ let def decl = decl ^ "-def"
 let value : int ref = ref 0
 let gensym () =
   value := !value + 1;
-  Printf.sprintf "?%d" !value
+  !value

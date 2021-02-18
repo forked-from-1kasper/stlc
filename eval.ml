@@ -3,12 +3,12 @@ open Expr
 
 let conv =
   let rec func map = function
-    | EVar x when SM.mem x map -> EVar (SM.find x map)
-    | EApp (f, x)              -> EApp (func map f, func map x)
-    | ELam (x, t, p)           ->
-      let y = gensym () in
+    | EVar (Ident x) when SM.mem x map -> EVar (SM.find x map)
+    | EApp (f, x)                      -> EApp (func map f, func map x)
+    | ELam (Ident x, t, p)             ->
+      let y = Index (gensym ()) in
       ELam (y, t, func (SM.add x y map) p)
-    | tau                      -> tau in
+    | tau -> tau in
   func SM.empty
 
 let rec subst x v = function
@@ -17,7 +17,8 @@ let rec subst x v = function
   | ELam (y, t, u)    -> ELam (y, t, subst x v u)
   | tau               -> tau
 
-let rec eval env = function
+let rec eval env tau =
+  match tau with
   | EApp (f, x)    ->
     let y = eval env x in
     begin match eval env f with
@@ -25,4 +26,5 @@ let rec eval env = function
     | g              -> EApp (g, y)
     end
   | ELam (x, t, p) -> ELam (x, t, eval env p)
-  | EVar x         -> Option.value (SM.find_opt x env) ~default:(EVar x)
+  | EVar (Ident x) -> Option.value (SM.find_opt x env) ~default:tau
+  | _              -> tau
