@@ -13,7 +13,8 @@ type exp =
 | EVar of name
 
 type command =
-| Decl of name * texp * exp
+| Abbrev of name * texp
+| Decl   of name * texp * exp
 
 type env = exp SM.t
 

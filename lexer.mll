@@ -26,6 +26,7 @@ rule main = parse
 | '('             { LPARENS     }
 | ')'             { RPARENS     }
 | "def"           { DEF         }
+| "abbrev"        { ABBREV      }
 | defeq           { DEFEQ       }
 | lam             { LAM         }
 | arrow           { ARROW       }

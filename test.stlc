@@ -1,3 +1,9 @@
 def test : ℕ := 0
-def true : σ → σ → σ :=
+
+abbrev bool := σ → σ → σ
+
+def true : bool :=
 λ (x : σ) (y : σ), x
+
+def false : bool :=
+λ (x : σ) (y : σ), y

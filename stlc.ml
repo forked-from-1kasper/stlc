@@ -24,6 +24,8 @@ let cmd : command -> unit = function
     Printf.printf "%s\n" (emit name exp texp);
     environment := SM.add name exp !environment
   end
+  | Abbrev (name, texp) ->
+    Printf.printf "(define %s %s)\n" name (showTExp texp)
 
 let file = List.iter cmd
 

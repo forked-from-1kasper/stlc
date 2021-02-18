@@ -4,7 +4,7 @@
 
 %token <string> IDENT
 %token COMMA LPARENS RPARENS DEFEQ
-%token LAM COLON EOF DEF ARROW
+%token LAM COLON EOF DEF ARROW ABBREV
 
 %right ARROW
 
@@ -34,6 +34,7 @@ exp2:
   | LPARENS exp1 RPARENS { $2      }
 
 command:
+  | ABBREV IDENT DEFEQ texp         { Abbrev ($2, $4) }
   | DEF IDENT COLON texp DEFEQ exp1 { Decl ($2, $4, $6) }
 
 file:
