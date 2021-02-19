@@ -12,8 +12,12 @@
 
 %%
 
+params:
+  | IDENT params { $1 :: $2 }
+  |              { []       }
+
 texp:
-  | IDENT                { TVar $1       }
+  | IDENT params         { TVar ($1, $2) }
   | texp ARROW texp      { TArr ($1, $3) }
   | LPARENS texp RPARENS { $2            }
 
@@ -34,8 +38,8 @@ exp2:
   | LPARENS exp1 RPARENS { $2              }
 
 command:
-  | ABBREV IDENT DEFEQ texp         { Abbrev ($2, $4) }
-  | DEF IDENT COLON texp DEFEQ exp1 { Decl ($2, $4, $6) }
+  | ABBREV IDENT params DEFEQ texp  { Abbrev ($2, $3, $5) }
+  | DEF IDENT COLON texp DEFEQ exp1 { Decl ($2, $4, $6)   }
 
 file:
   | command file { $1 :: $2 }

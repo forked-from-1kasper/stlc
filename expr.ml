@@ -7,7 +7,7 @@ type name =
 
 type texp =
 | TArr of texp * texp
-| TVar of string
+| TVar of string * string list
 
 type exp =
 | ELam of name * texp * exp
@@ -15,14 +15,17 @@ type exp =
 | EVar of name
 
 type command =
-| Abbrev of string * texp
+| Abbrev of string * string list * texp
 | Decl   of string * texp * exp
 
 type env = exp SM.t
 
 let rec showTExp : texp -> string = function
-  | TArr (dom, cod) -> Printf.sprintf "(%s → %s)" (showTExp dom) (showTExp cod)
-  | TVar value    -> value
+  | TArr (dom, cod)      -> Printf.sprintf "(%s → %s)" (showTExp dom) (showTExp cod)
+  | TVar (value, [])     -> value
+  | TVar (value, params) ->
+    String.concat " " params
+    |> Printf.sprintf "(%s %s)" value
 
 let showName : name -> string = function
   | Ident x -> x
