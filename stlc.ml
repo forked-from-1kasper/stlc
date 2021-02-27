@@ -7,11 +7,11 @@ open Eval
 open Parser
 
 let help =
-  "    invoke = stlc | stlc list
-       list = [] | command list
-    command = check filename
-            | eval  filename
-            | help"
+"   invoke = stlc | stlc list
+     list = [] | command list
+  command = check filename
+          | eval  filename
+          | help"
 
 let (>>) f g = fun x -> g (f x)
 
