@@ -3,7 +3,7 @@
 %}
 
 %token <string> IDENT
-%token COMMA LPARENS RPARENS DEFEQ
+%token COMMA LPARENS RPARENS DEFEQ EVAL
 %token LAM COLON EOF DEF ARROW ABBREV
 
 %right ARROW
@@ -30,8 +30,9 @@ cotele:
 
 exp1:
   | IDENT                 { EVar (Ident $1) }
-  | exp2 exp2             { EApp ($1, $2)   }
+  | exp2 exp2+            { app $1 $2       }
   | LAM cotele COMMA exp1 { lam $2 $4       }
+  | LPARENS exp1 RPARENS  { $2              }
 
 exp2:
   | IDENT                { EVar (Ident $1) }
@@ -40,6 +41,7 @@ exp2:
 command:
   | ABBREV IDENT params DEFEQ texp  { Abbrev ($2, $3, $5) }
   | DEF IDENT COLON texp DEFEQ exp1 { Decl ($2, $4, $6)   }
+  | EVAL exp1 COLON texp            { Eval ($4, $2)       }
 
 file:
   | command file { $1 :: $2 }

@@ -25,6 +25,7 @@ rule main = parse
 | ','             { COMMA       }
 | '('             { LPARENS     }
 | ')'             { RPARENS     }
+| "#eval"         { EVAL        }
 | "def"           { DEF         }
 | "abbrev"        { ABBREV      }
 | defeq           { DEFEQ       }

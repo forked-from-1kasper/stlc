@@ -17,6 +17,7 @@ type exp =
 type command =
 | Abbrev of string * string list * texp
 | Decl   of string * texp * exp
+| Eval   of texp * exp
 
 type env = exp SM.t
 
@@ -40,3 +41,7 @@ let rec lam cotele exp =
   match cotele with
   | []           -> exp
   | (x, t) :: xs -> ELam (x, t, lam xs exp)
+
+let rec app f = function
+  | []      -> f
+  | x :: xs -> app (EApp (f, x)) xs

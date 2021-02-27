@@ -21,4 +21,6 @@ let decl name t =
     (def name) name (showTExp t)
 
 let emit name e t =
-  check name e t ^ "\n" ^ decl name t  
+  match name with
+  | Some value -> check value e t ^ "\n" ^ decl value t
+  | None       -> check (gensym () |> Printf.sprintf "?%d") e t

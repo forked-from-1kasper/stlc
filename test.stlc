@@ -1,12 +1,14 @@
 def test : ℕ := 0
 
-abbrev bool σ := σ → σ → σ
+abbrev bool := ι → ι → ι
 
-def true : bool σ :=
-λ (x : σ) (y : σ), x
+def true : bool :=
+λ (x : ι) (y : ι), x
 
-def false : bool σ :=
-λ (x : σ) (y : σ), y
+def false : bool :=
+λ (x : ι) (y : ι), y
 
-def ite : bool σ → σ → σ → σ :=
-λ (b : bool σ), b
+def ite : bool → ι → ι → ι :=
+λ (b : bool), b
+
+#eval λ (x : ι), (ite true x x) : ι → ι
